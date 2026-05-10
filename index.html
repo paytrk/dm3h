@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>لعبة الحروف</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Tahoma, Arial, sans-serif;
+    background: url('https://files.catbox.moe/cia4uk.gif') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+/* طبقة تغبيش خفيفة للخلفية */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    z-index: -1;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.92);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 0;
+    color: #222;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 18px;
+}
+
+input {
+    text-align: center;
+}
+
+button {
+    background: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #0056b3;
+    transform: scale(1.02);
+}
+
+.result {
+    margin-top: 20px;
+    text-align: right;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    display: none;
+}
+
+.result p {
+    margin: 8px 0;
+    font-size: 18px;
+}
+
+strong {
+    color: #007bff;
+}
+
+/* حقوق دمعه أسفل يسار الشاشة */
+.footer {
+    position: fixed;
+    bottom: 10px;
+    left: 15px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+    user-select: none;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎮 لعبة الحروف</h1>
+
+    <label for="letterInput">اكتب حرف واحد:</label>
+    <input type="text" id="letterInput" maxlength="1" placeholder="مثال: م">
+
+    <button onclick="generateWords()">إظهار الكلمات</button>
+
+    <div class="result" id="resultBox">
+        <p><strong>🌍 دولة:</strong> <span id="country"></span></p>
+        <p><strong>🪑 جماد:</strong> <span id="object"></span></p>
+        <p><strong>👤 اسم:</strong> <span id="name"></span></p>
+        <p><strong>🌿 نبات:</strong> <span id="plant"></span></p>
+    </div>
+</div>
+
+<div class="footer">حقوق دمعه</div>
+
+<script>
+const data = {
+    "ا": { country: "الأردن", object: "إبريق", name: "أحمد", plant: "أرز" },
+    "ب": { country: "البرازيل", object: "باب", name: "بدر", plant: "بقدونس" },
+    "ت": { country: "تونس", object: "تلفزيون", name: "تركي", plant: "تمر" },
+    "ج": { country: "جيبوتي", object: "جوال", name: "جاسم", plant: "جزر" },
+    "ح": { country: "الهند", object: "حقيبة", name: "حسن", plant: "حبق" },
+    "خ": { country: "الخرطوم", object: "خزانة", name: "خالد", plant: "خس" },
+    "د": { country: "الدنمارك", object: "درج", name: "دانا", plant: "ذرة" },
+    "ر": { country: "روسيا", object: "راديو", name: "راشد", plant: "رمان" },
+    "ز": { country: "زامبيا", object: "زر", name: "زياد", plant: "زعتر" },
+    "س": { country: "سوريا", object: "سرير", name: "سالم", plant: "سمسم" },
+    "ش": { country: "الشيشان", object: "شباك", name: "شادي", plant: "شمام" },
+    "ص": { country: "صربيا", object: "صندوق", name: "صالح", plant: "صبار" },
+    "ط": { country: "طاجيكستان", object: "طاولة", name: "طارق", plant: "طماطم" },
+    "ع": { country: "عمان", object: "عجلة", name: "علي", plant: "عنب" },
+    "ف": { country: "فرنسا", object: "فانوس", name: "فهد", plant: "فلفل" },
+    "ق": { country: "قطر", object: "قلم", name: "قاسم", plant: "قرنبيط" },
+    "ك": { country: "كندا", object: "كرسي", name: "كريم", plant: "كمثرى" },
+    "ل": { country: "لبنان", object: "لوحة", name: "ليث", plant: "ليمون" },
+    "م": { country: "مصر", object: "مكتب", name: "محمد", plant: "موز" },
+    "ن": { country: "نيجيريا", object: "نافذة", name: "ناصر", plant: "نعناع" },
+    "ه": { country: "هولندا", object: "هاتف", name: "هاني", plant: "هيل" },
+    "و": { country: "ويلز", object: "وسادة", name: "وليد", plant: "ورد" },
+    "ي": { country: "اليمن", object: "يد", name: "ياسر", plant: "ياسمين" }
+};
+
+function generateWords() {
+    const letter = document.getElementById("letterInput").value.trim();
+    const resultBox = document.getElementById("resultBox");
+
+    if (!letter) {
+        alert("اكتب حرف أولاً");
+        return;
+    }
+
+    const result = data[letter];
+
+    if (result) {
+        document.getElementById("country").textContent = result.country;
+        document.getElementById("object").textContent = result.object;
+        document.getElementById("name").textContent = result.name;
+        document.getElementById("plant").textContent = result.plant;
+    } else {
+        document.getElementById("country").textContent = "لا يوجد";
+        document.getElementById("object").textContent = "لا يوجد";
+        document.getElementById("name").textContent = "لا يوجد";
+        document.getElementById("plant").textContent = "لا يوجد";
+    }
+
+    resultBox.style.display = "block";
+}
+</script>
+
+</body>
+</html>
