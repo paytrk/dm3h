@@ -1,83 +1,57 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>لعبة الحروف</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
 body {
     font-family: Tahoma, Arial, sans-serif;
     background: url('https://files.catbox.moe/cia4uk.gif') no-repeat center center fixed;
     background-size: cover;
+    margin: 0;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
     padding: 20px;
 }
 
-/* طبقة تغبيش خفيفة للخلفية */
 body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(2px);
+    background: rgba(0,0,0,0.4);
     z-index: -1;
 }
 
 .container {
-    background: rgba(255, 255, 255, 0.92);
-    padding: 30px;
+    background: rgba(255,255,255,0.92);
+    padding: 25px;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     width: 100%;
     max-width: 500px;
     text-align: center;
 }
 
-h1 {
-    margin-top: 0;
-    color: #222;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-}
-
 input, button {
     width: 100%;
     padding: 12px;
-    margin: 10px 0;
+    margin-top: 10px;
+    font-size: 18px;
     border-radius: 10px;
     border: 1px solid #ccc;
-    font-size: 18px;
-}
-
-input {
-    text-align: center;
 }
 
 button {
     background: #007bff;
     color: white;
     border: none;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.2s;
 }
 
 button:hover {
     background: #0056b3;
-    transform: scale(1.02);
 }
 
 .result {
@@ -89,43 +63,31 @@ button:hover {
     display: none;
 }
 
-.result p {
-    margin: 8px 0;
-    font-size: 18px;
-}
-
-strong {
-    color: #007bff;
-}
-
-/* حقوق دمعه أسفل يسار الشاشة */
 .footer {
     position: fixed;
     bottom: 10px;
     left: 15px;
     color: white;
     font-size: 14px;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0,0,0,0.8);
-    user-select: none;
+    text-shadow: 0 0 5px black;
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
-    <h1>🎮 لعبة الحروف</h1>
+    <h2>🎮 لعبة الحروف</h2>
 
-    <label for="letterInput">اكتب حرف واحد:</label>
-    <input type="text" id="letterInput" maxlength="1" placeholder="مثال: م">
+    <input id="letter" maxlength="1" placeholder="اكتب حرف">
+    <button onclick="show()">عرض</button>
 
-    <button onclick="generateWords()">إظهار الكلمات</button>
-
-    <div class="result" id="resultBox">
-        <p><strong>🌍 دولة:</strong> <span id="country"></span></p>
-        <p><strong>🪑 جماد:</strong> <span id="object"></span></p>
-        <p><strong>👤 اسم:</strong> <span id="name"></span></p>
-        <p><strong>🌿 نبات:</strong> <span id="plant"></span></p>
+    <div class="result" id="box">
+        <p>🌍 دولة: <span id="country"></span></p>
+        <p>🪑 جماد: <span id="object"></span></p>
+        <p>👤 اسم: <span id="name"></span></p>
+        <p>🌿 نبات: <span id="plant"></span></p>
+        <p>🐾 حيوان: <span id="animal"></span></p>
     </div>
 </div>
 
@@ -133,55 +95,54 @@ strong {
 
 <script>
 const data = {
-    "ا": { country: "الأردن", object: "إبريق", name: "أحمد", plant: "أرز" },
-    "ب": { country: "البرازيل", object: "باب", name: "بدر", plant: "بقدونس" },
-    "ت": { country: "تونس", object: "تلفزيون", name: "تركي", plant: "تمر" },
-    "ج": { country: "جيبوتي", object: "جوال", name: "جاسم", plant: "جزر" },
-    "ح": { country: "الهند", object: "حقيبة", name: "حسن", plant: "حبق" },
-    "خ": { country: "الخرطوم", object: "خزانة", name: "خالد", plant: "خس" },
-    "د": { country: "الدنمارك", object: "درج", name: "دانا", plant: "ذرة" },
-    "ر": { country: "روسيا", object: "راديو", name: "راشد", plant: "رمان" },
-    "ز": { country: "زامبيا", object: "زر", name: "زياد", plant: "زعتر" },
-    "س": { country: "سوريا", object: "سرير", name: "سالم", plant: "سمسم" },
-    "ش": { country: "الشيشان", object: "شباك", name: "شادي", plant: "شمام" },
-    "ص": { country: "صربيا", object: "صندوق", name: "صالح", plant: "صبار" },
-    "ط": { country: "طاجيكستان", object: "طاولة", name: "طارق", plant: "طماطم" },
-    "ع": { country: "عمان", object: "عجلة", name: "علي", plant: "عنب" },
-    "ف": { country: "فرنسا", object: "فانوس", name: "فهد", plant: "فلفل" },
-    "ق": { country: "قطر", object: "قلم", name: "قاسم", plant: "قرنبيط" },
-    "ك": { country: "كندا", object: "كرسي", name: "كريم", plant: "كمثرى" },
-    "ل": { country: "لبنان", object: "لوحة", name: "ليث", plant: "ليمون" },
-    "م": { country: "مصر", object: "مكتب", name: "محمد", plant: "موز" },
-    "ن": { country: "نيجيريا", object: "نافذة", name: "ناصر", plant: "نعناع" },
-    "ه": { country: "هولندا", object: "هاتف", name: "هاني", plant: "هيل" },
-    "و": { country: "ويلز", object: "وسادة", name: "وليد", plant: "ورد" },
-    "ي": { country: "اليمن", object: "يد", name: "ياسر", plant: "ياسمين" }
+"ا":{country:"الإمارات",object:"إبرة",name:"أحمد",plant:"أرز",animal:"أسد"},
+"ب":{country:"البحرين",object:"باب",name:"بدر",plant:"بقدونس",animal:"بطة"},
+"ت":{country:"تونس",object:"تلفاز",name:"تركي",plant:"تمر",animal:"تمساح"},
+"ث":{country:"ثادق",object:"ثلاجة",name:"ثامر",plant:"ثوم",animal:"ثور"},
+"ج":{country:"الجزائر",object:"جوال",name:"جاسم",plant:"جزر",animal:"جمل"},
+"ح":{country:"الأردن",object:"حقيبة",name:"حسن",plant:"حبق",animal:"حصان"},
+"خ":{country:"السعودية",object:"خزانة",name:"خالد",plant:"خس",animal:"خروف"},
+"د":{country:"الدنمارك",object:"درج",name:"دانا",plant:"ذرة",animal:"دب"},
+"ذ":{country:"الظهران",object:"ذراع",name:"ذياب",plant:"ذرة",animal:"ذئب"},
+"ر":{country:"روسيا",object:"راديو",name:"راشد",plant:"رمان",animal:"راكون"},
+"ز":{country:"زامبيا",object:"زر",name:"زياد",plant:"زعتر",animal:"زرافة"},
+"س":{country:"سوريا",object:"سرير",name:"سالم",plant:"سمسم",animal:"سمكة"},
+"ش":{country:"الشيشان",object:"شباك",name:"شادي",plant:"شمام",animal:"شمبانزي"},
+"ص":{country:"الصين",object:"صندوق",name:"صالح",plant:"صبار",animal:"صقر"},
+"ض":{country:"ضباء",object:"ضوء",name:"ضياء",plant:"ضرو",animal:"ضبع"},
+"ط":{country:"طاجيكستان",object:"طاولة",name:"طارق",plant:"طماطم",animal:"طاووس"},
+"ظ":{country:"ظفار",object:"ظرف",name:"ظافر",plant:"ظيان",animal:"ظبي"},
+"ع":{country:"عمان",object:"عجلة",name:"علي",plant:"عنب",animal:"عصفور"},
+"غ":{country:"غانا",object:"غسالة",name:"غسان",plant:"غار",animal:"غزال"},
+"ف":{country:"فرنسا",object:"فانوس",name:"فهد",plant:"فلفل",animal:"فيل"},
+"ق":{country:"قطر",object:"قلم",name:"قاسم",plant:"قرنبيط",animal:"قرد"},
+"ك":{country:"كندا",object:"كرسي",name:"كريم",plant:"كمثرى",animal:"كلب"},
+"ل":{country:"لبنان",object:"لوح",name:"ليث",plant:"ليمون",animal:"لقلق"},
+"م":{country:"مصر",object:"مكتب",name:"محمد",plant:"موز",animal:"ماعز"},
+"ن":{country:"نيجيريا",object:"نافذة",name:"ناصر",plant:"نعناع",animal:"نمر"},
+"ه":{country:"هولندا",object:"هاتف",name:"هاني",plant:"هيل",animal:"هدهد"},
+"و":{country:"اليمن",object:"وسادة",name:"وليد",plant:"ورد",animal:"وحيد القرن"},
+"ي":{country:"اليابان",object:"يد",name:"ياسر",plant:"ياسمين",animal:"يعسوب"}
 };
 
-function generateWords() {
-    const letter = document.getElementById("letterInput").value.trim();
-    const resultBox = document.getElementById("resultBox");
+function show(){
+let l=document.getElementById("letter").value;
+let r=data[l];
+document.getElementById("box").style.display="block";
 
-    if (!letter) {
-        alert("اكتب حرف أولاً");
-        return;
-    }
-
-    const result = data[letter];
-
-    if (result) {
-        document.getElementById("country").textContent = result.country;
-        document.getElementById("object").textContent = result.object;
-        document.getElementById("name").textContent = result.name;
-        document.getElementById("plant").textContent = result.plant;
-    } else {
-        document.getElementById("country").textContent = "لا يوجد";
-        document.getElementById("object").textContent = "لا يوجد";
-        document.getElementById("name").textContent = "لا يوجد";
-        document.getElementById("plant").textContent = "لا يوجد";
-    }
-
-    resultBox.style.display = "block";
+if(r){
+country.textContent=r.country;
+object.textContent=r.object;
+name.textContent=r.name;
+plant.textContent=r.plant;
+animal.textContent=r.animal;
+}else{
+country.textContent="لا يوجد";
+object.textContent="لا يوجد";
+name.textContent="لا يوجد";
+plant.textContent="لا يوجد";
+animal.textContent="لا يوجد";
+}
 }
 </script>
 
